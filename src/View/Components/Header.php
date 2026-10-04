@@ -10,7 +10,6 @@ use Illuminate\View\Component;
 class Header extends Component
 {
     public string $anchor = '';
-
     public string $titleTag = 'div';
 
     public function __construct(
@@ -29,10 +28,11 @@ class Header extends Component
         public ?string $iconClasses = null,
 
         // Slots
-        public mixed $middle = null,
-        public mixed $actions = null,
+        public mixed $brand = null,     // ⬅️ BARU: slot kiri custom
+        public mixed $middle = null,    // (nggak diubah)
+        public mixed $actions = null,   // (nggak diubah)
     ) {
-        $this->anchor = Str::slug($title);
+        $this->anchor = Str::slug($title ?? '');
         $this->titleTag = $useH1 ? 'h1' : 'div';
     }
 
@@ -51,26 +51,31 @@ class Header extends Component
                 <div id="{{ $anchor }}" {{ $attributes->class(["mb-10", "mary-header-anchor" => $withAnchor]) }}>
                     <div class="flex flex-wrap gap-5 justify-between items-center">
                         <div>
-                            {!! "<{$titleTag}" !!} @class(["flex", "items-center", "$size $weight", is_string($title) ? '' : $title?->attributes->get('class') ]) >
-                                @if($withAnchor)
-                                    <a href="#{{ $anchor }}">
+                            {{-- LEFT: brand slot, fallback ke title/subtitle default --}}
+                            @if($brand)
+                                {{ $brand }}
+                            @else
+                                {!! "<{$titleTag}" !!} @class(["flex", "items-center", "$size $weight", is_string($title) ? '' : $title?->attributes->get('class') ]) >
+                                    @if($withAnchor)
+                                        <a href="#{{ $anchor }}">
+                                    @endif
+
+                                    @if($icon)
+                                        <x-mary-icon name="{{ $icon }}" class="{{ $iconClasses }}" />
+                                    @endif
+
+                                    <span @class(["ml-2" => $icon])>{{ $title }}</span>
+
+                                    @if($withAnchor)
+                                        </a>
+                                    @endif
+                                {!! "</{$titleTag}>" !!}
+
+                                @if($subtitle)
+                                    <div @class(["text-base-content/50 text-sm mt-1", is_string($subtitle) ? '' : $subtitle?->attributes->get('class') ]) >
+                                        {{ $subtitle }}
+                                    </div>
                                 @endif
-
-                                @if($icon)
-                                    <x-mary-icon name="{{ $icon }}" class="{{ $iconClasses }}" />
-                                @endif
-
-                                <span @class(["ml-2" => $icon])>{{ $title }}</span>
-
-                                @if($withAnchor)
-                                    </a>
-                                @endif
-                            {!! "</{$titleTag}>" !!}
-
-                            @if($subtitle)
-                                <div @class(["text-base-content/50 text-sm mt-1", is_string($subtitle) ? '' : $subtitle?->attributes->get('class') ]) >
-                                    {{ $subtitle }}
-                                </div>
                             @endif
                         </div>
 
@@ -100,7 +105,7 @@ class Header extends Component
 
                                     @if($progressTarget())
                                         wire:target="{{ $progressTarget() }}"
-                                     @endif></progress>
+                                    @endif></progress>
                             </div>
                         @endif
                     @endif
